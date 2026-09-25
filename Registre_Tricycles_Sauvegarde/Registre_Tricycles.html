@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Registre Tricycles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f3eb; --panel:#ffffff; --panel2:#f0ebe2; --line:#e0d8cc;
+  --ink:#1c2a22; --ink-dim:#6b7a70; --amber:#1a5c3a; --amber-dim:#144a2e; --gold:#c48a2a;
+  --ok:#1a5c3a; --bad:#c0392b;
+  --shadow:0 4px 20px rgba(28,42,34,.07); --shadow-lg:0 12px 40px rgba(28,42,34,.12);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{
+  background:var(--bg); color:var(--ink); font-family:'DM Sans',system-ui,sans-serif;
+  font-size:15px; line-height:1.5; overflow-x:hidden;
+}
+h1,h2,h3{font-family:'Source Serif 4',serif; font-weight:700; margin:0; color:var(--ink)}
+::-webkit-scrollbar{width:8px} ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+
+#gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%, #e8f0e9 0%, var(--bg) 60%)}
+.gate-box{width:100%;max-width:360px;text-align:center;background:var(--panel);border:1px solid var(--line);
+  border-radius:20px;padding:2rem 1.6rem;box-shadow:var(--shadow-lg)}
+.gate-box h1{font-size:26px;margin-bottom:6px;color:var(--amber)}
+.gate-box p{color:var(--ink-dim);margin:0 0 22px;font-size:14px}
+input[type=password],input[type=text],input[type=number],input[type=date],select{
+  width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+  padding:11px 12px;border-radius:10px;font-size:15px;font-family:inherit;outline:none;transition:.15s;
+}
+select{appearance:auto}
+input:focus,select:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(26,92,58,.12);background:#fff}
+button{font-family:inherit;cursor:pointer}
+.btn{background:var(--amber);color:#fff;border:none;padding:11px 16px;border-radius:11px;font-weight:700;font-size:14px;transition:.15s}
+.btn:hover{background:var(--amber-dim)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:600}
+.btn.ghost:hover{border-color:var(--amber);color:var(--amber)}
+.btn.small{padding:7px 12px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:default}
+
+#app{display:none;max-width:1000px;margin:0 auto;padding:20px 20px 100px}
+header.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:8px;
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 20px;box-shadow:var(--shadow);min-height:24px}
+header.top .sub{color:var(--ink-dim);font-size:12.5px}
+
+.bottom-bar{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;
+  padding:14px 20px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top, var(--bg) 60%, rgba(247,243,235,0));z-index:30}
+
+.contact-actions{display:flex;gap:8px}
+.icon-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);
+  display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex-shrink:0;text-decoration:none}
+.icon-btn:hover{border-color:var(--amber);background:var(--accent-light,#e8f5ee)}
+.icon-btn.wa:hover{color:#25D366;border-color:#25D366}
+.contact-row{display:flex;gap:10px;margin-top:14px}
+.contact-row .btn.ghost{flex:1;display:flex;align-items:center;justify-content:center;gap:6px}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px}
+.toolbar h2{font-size:13px;color:var(--ink-dim);font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+
+.ledger{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.row{display:grid;grid-template-columns:1fr auto auto auto;gap:14px;align-items:center;
+  padding:14px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s}
+.row:last-child{border-bottom:none}
+.row:hover{background:var(--panel2)}
+.row .who{display:flex;align-items:center;gap:12px}
+.row .who .txt{display:flex;flex-direction:column;gap:2px}
+.row .who b{font-size:15.5px}
+.row .who span{color:var(--ink-dim);font-size:12.5px}
+.avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;background:var(--panel2);border:1px solid var(--line);flex-shrink:0}
+.avatar.big{width:64px;height:64px}
+.avatar-pick{width:76px;height:76px;border-radius:50%;background:var(--panel2);border:2px dashed var(--line);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;color:var(--ink-dim);font-size:11px;text-align:center;line-height:1.3}
+.avatar-pick img{width:100%;height:100%;object-fit:cover}
+.avatar-pick:hover{border-color:var(--amber);color:var(--amber)}
+.name-row{display:flex;gap:14px;align-items:center;margin-bottom:14px}
+.name-row .field{flex:1;margin:0}
+.progress-wrap{width:150px}
+.bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar > i{display:block;height:100%;background:var(--amber);border-radius:99px;transition:width .3s}
+.progress-wrap .nums{font-size:11.5px;color:var(--ink-dim);margin-top:4px;display:flex;justify-content:space-between}
+.badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--gold-light,#fdf6e9);color:var(--gold);white-space:nowrap}
+.badge.done{color:#fff;background:var(--amber)}
+.badge.late{color:#fff;background:var(--bad)}
+.empty{color:var(--ink-dim);padding:40px 20px;text-align:center;font-size:14px}
+
+.modal-bg{position:fixed;inset:0;background:rgba(28,42,34,.4);display:none;align-items:flex-start;justify-content:center;
+  z-index:40;padding:20px;overflow-y:auto;backdrop-filter:blur(4px)}
+.modal-bg.show{display:flex}
+.modal{background:var(--panel);border-radius:18px;max-width:480px;width:100%;
+  padding:24px;margin-top:min(6vh,60px);box-shadow:var(--shadow-lg)}
+.modal h2{font-size:19px;margin-bottom:18px;color:var(--amber)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--ink-dim);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.close-x{position:absolute;top:16px;right:18px;background:none;border:none;color:var(--ink-dim);font-size:20px}
+
+.detail-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.detail-head h2{font-size:22px}
+.detail-head .sub{color:var(--ink-dim);font-size:13px;margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:18px 0}
+.stat{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:12px;box-shadow:var(--shadow)}
+.stat .k{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.stat .v{font-family:'Source Serif 4',serif;font-size:20px;font-weight:700;color:var(--amber)}
+
+.pay-form{display:flex;gap:10px;align-items:flex-end;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;padding:16px;margin-bottom:16px;flex-wrap:wrap;box-shadow:var(--shadow)}
+.pay-form .field{margin:0;flex:1;min-width:130px}
+.status-line{font-size:13px;margin-top:2px;margin-bottom:14px;min-height:18px;font-weight:600}
+.status-line.ok{color:var(--ok)} .status-line.bad{color:var(--bad)}
+.day-list{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px 16px;margin-bottom:22px;box-shadow:var(--shadow)}
+.day-list .dl-title{font-size:11px;color:var(--ink-dim);padding:12px 0 4px;text-transform:uppercase;letter-spacing:.3px}
+.day-list .dl-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.day-list .dl-row:last-child{border-bottom:none}
+.day-list .dl-total{display:flex;justify-content:space-between;padding:10px 0;font-weight:700;color:var(--amber)}
+
+.hist-row{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);font-size:13.5px}
+.hist-row:last-child{border-bottom:none}
+.hist-row .d{color:var(--ink-dim);width:110px}
+.hist-row .amt{font-weight:700;color:var(--amber)}
+.hist-row.missed .amt{color:var(--bad)}
+.hist-row .act{margin-left:auto}
+
+a.back{color:var(--ink-dim);font-size:13px;text-decoration:none;display:inline-block;margin-bottom:14px;font-weight:600}
+a.back:hover{color:var(--amber)}
+.msg{color:var(--bad);font-size:12.5px;text-align:center;margin-top:10px}
+
+.hero{display:none;text-align:center;padding:22px 20px 26px}
+.hero.show{display:block}
+.logo-big{display:block;width:min(260px,68vw);height:auto;max-height:260px;object-fit:contain;margin:0 auto 10px;cursor:pointer;
+  border-radius:24px;filter:drop-shadow(0 8px 20px rgba(28,42,34,.15));transition:.2s}
+.logo-big:hover{transform:scale(1.02)}
+.logo-change{background:none;border:none;color:var(--ink-dim);font-size:12px;text-decoration:underline;margin-bottom:8px;padding:4px}
+.logo-change:hover{color:var(--amber)}
+.hero .cname{font-family:'Source Serif 4',serif;font-size:1.5rem;font-weight:700;color:var(--amber)}
+.hero .ctag{font-size:.85rem;color:var(--ink-dim);margin-top:4px}
+.topbar-logo{width:34px;height:34px;border-radius:9px;object-fit:cover;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="top" id="topBar">
+    <div id="topbarLeft" style="display:flex;align-items:center;gap:10px"></div>
+    <div id="topbarRight"><button class="btn ghost small" onclick="editCompany()">⚙️ Entreprise</button></div>
+  </header>
+
+  <div id="hero" class="hero"></div>
+
+  <div id="view"></div>
+</div>
+
+<div class="bottom-bar" id="bottomBar">
+  <button class="btn" style="width:100%;max-width:520px" onclick="openModal('clientModalBg')">+ Enregistrer un nouveau client</button>
+</div>
+
+<input type="file" accept="image/*" id="f_logo" style="display:none" onchange="onLogoChange(event)">
+<div class="modal-bg" id="clientModalBg">
+  <div class="modal" style="position:relative">
+    <button class="close-x" onclick="closeModal('clientModalBg')">✕</button>
+    <h2>Nouveau client</h2>
+    <div class="name-row">
+      <div class="avatar-pick" id="photoPick" onclick="document.getElementById('f_photo').click()">Ajouter<br>une photo</div>
+      <input type="file" accept="image/*" capture="user" id="f_photo" style="display:none" onchange="onPhotoChange(event)">
+      <div class="field"><label>Nom du client</label><input type="text" id="f_name" placeholder="Ex. Komla Adjo"></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Téléphone</label><input type="text" id="f_phone" placeholder="Ex. 90 12 34 56"></div>
+      <div class="field"><label>Sexe</label>
+        <select id="f_sex">
+          <option value="H">Homme</option>
+          <option value="F">Femme</option>
+        </select>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Plaque du tricycle</label><input type="text" id="f_tri" placeholder="Ex. TG 1234 A"></div>
+      <div class="field"><label>Prix total du tricycle (FCFA)</label><input type="number" id="f_total" placeholder="Ex. 1500000"></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Montant / jour conseillé (FCFA)</label><input type="number" id="f_daily" placeholder="Ex. 3000"></div>
+      <div class="field"><label>Date de remise du tricycle</label><input type="date" id="f_start"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('clientModalBg')">Annuler</button>
+      <button class="btn" onclick="saveClient()">Enregistrer le client</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FMT = n => (n||0).toLocaleString('fr-FR');
+const todayStr = () => new Date().toISOString().slice(0,10);
+let db=null, dbReady=false, assets=null;
+let clients=[], paymentsCache={}; // clientId -> array of payment docs (loaded on demand)
+let currentClientId=null;
+let pendingPhotoId=null;
+
+function photoUrl(c){ return c && c.photoId ? ('/_blob/'+c.photoId) : null; }
+async function onPhotoChange(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const pick = document.getElementById('photoPick');
+  const localUrl = URL.createObjectURL(file);
+  pick.innerHTML = `<img src="${localUrl}">`;
+  pendingPhotoId=null;
+  if(assets){
+    try{
+      const up = await assets.upload(file);
+      pendingPhotoId = up.id;
+    }catch(err){ /* keep local preview only, upload failed */ }
+  }
+}
+
+// ---------- config / company name & logo ----------
+let companyName='', logoId=null;
+async function loadConfig(){
+  try{
+    const d = await db.doc('config/app').get();
+    const data = d.exists ? (d.data()||{}) : {};
+    companyName = data.companyName || '';
+    logoId = data.logoId || null;
+  }catch(e){ companyName=''; logoId=null; }
+}
+async function editCompany(){
+  const val = prompt("Nom de l'entreprise (utilisé dans les messages WhatsApp) :", companyName);
+  if(val===null) return;
+  companyName = val.trim();
+  try{ await db.doc('config/app').set({companyName, logoId}); }catch(e){}
+  renderTopBar(null);
+  renderHero();
+}
+async function onLogoChange(e){
+  const file = e.target.files[0];
+  if(!file || !assets) return;
+  try{
+    const up = await assets.upload(file);
+    logoId = up.id;
+    await db.doc('config/app').set({companyName, logoId});
+    renderTopBar(null);
+    renderHero();
+  }catch(err){}
+}
+function logoUrl(){ return logoId ? ('/_blob/'+logoId) : null; }
+// Logo par défaut (tricycle) affiché tant qu'aucun logo n'est téléversé
+const DEFAULT_LOGO = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">'+
+  '<rect width="200" height="200" rx="44" fill="#1a5c3a"/>'+
+  '<circle cx="100" cy="100" r="84" fill="none" stroke="#c48a2a" stroke-width="4"/>'+
+  '<g fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">'+
+  '<circle cx="62" cy="128" r="17"/><circle cx="118" cy="128" r="17"/><circle cx="158" cy="128" r="17"/>'+
+  '<path d="M62 128 L86 90 L128 90 L118 128 M86 90 L78 76 L64 76"/>'+
+  '<path d="M128 90 L146 90 L158 128"/></g>'+
+  '<circle cx="100" cy="46" r="6" fill="#c48a2a"/></svg>');
+
+function renderHero(){
+  const el = document.getElementById('hero');
+  const lu = logoUrl();
+  el.innerHTML = `
+    <img class="logo-big" src="${lu||DEFAULT_LOGO}" alt="Logo" onclick="document.getElementById('f_logo').click()">
+    <div><button class="btn ghost small logo-change" style="border:none" onclick="document.getElementById('f_logo').click()">Changer le logo</button></div>
+    <div class="cname">${esc(companyName)||"Nom de l'entreprise"}</div>
+    <div class="ctag">Registre des tricycles &amp; paiements</div>`;
+}
+
+function renderTopBar(c){
+  const left = document.getElementById('topbarLeft');
+  const right = document.getElementById('topbarRight');
+  if(c){
+    const av = photoUrl(c);
+    left.innerHTML = `${av?`<img class="topbar-logo" src="${av}">`:`<div class="topbar-logo" style="background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-dim)">—</div>`}
+      <div><b style="font-size:14.5px">${esc(c.name)}</b><div class="sub">${esc(c.phone||'')}</div></div>`;
+    right.innerHTML = '';
+  } else {
+    const lu = logoUrl();
+    left.innerHTML = `<img class="topbar-logo" src="${lu||DEFAULT_LOGO}"><span style="font-family:'Source Serif 4',serif;font-weight:700;font-size:18px;color:var(--amber)">${esc(companyName)||"Nom de l'entreprise non défini"}</span>`;
+    right.innerHTML = `<button class="btn ghost small" onclick="editCompany()">⚙️ Entreprise</button>`;
+  }
+}
+
+// ---------- répertoire (appel / whatsapp) ----------
+function digitsOnly(p){ return (p||'').replace(/\D/g,''); }
+function intlPhone(p){
+  let d = digitsOnly(p);
+  if(d.length===8) d = '228'+d; // numéro togolais local sans indicatif
+  return d;
+}
+function telHref(p){ return 'tel:+'+intlPhone(p); }
+function waHref(p, name, sex){
+  const civ = sex==='F' ? 'Madame' : 'Monsieur';
+  let msg = `Bonsoir ${civ} ${name}, nous vous prions de régulariser votre montant journalier pour favoriser la bonne entente.`;
+  if(companyName) msg += `\n${companyName}`;
+  return `https://wa.me/${intlPhone(p)}?text=${encodeURIComponent(msg)}`;
+}
+
+async function enterApp(){
+  document.getElementById('app').style.display='block';
+  await loadConfig();
+  await loadClients();
+  renderDashboard();
+}
+
+// ---------- data ----------
+async function loadClients(){
+  try{
+    const res = await db.collection('clients').get();
+    clients = (res?.docs||[]).map(d=>({id:d.id, ...d.data()})).sort((a,b)=> (a.name||'').localeCompare(b.name||''));
+  }catch(e){ clients=[]; }
+}
+async function loadPayments(clientId){
+  try{
+    const res = await db.collection('payments').where('clientId','==',clientId).orderBy('date','desc').limit(200).get();
+    const list = (res?.docs||[]).map(d=>({id:d.id, ...d.data()}));
+    paymentsCache[clientId]=list;
+    return list;
+  }catch(e){ paymentsCache[clientId]=[]; return []; }
+}
+function totalPaid(list){ return list.reduce((s,p)=>s+(Number(p.amount)||0),0); }
+
+// ---------- dashboard ----------
+function renderDashboard(){
+  currentClientId=null;
+  document.getElementById('bottomBar').style.display='flex';
+  document.getElementById('hero').classList.add('show');
+  renderHero();
+  renderTopBar(null);
+  const el = document.getElementById('view');
+  let rows = clients.map(c=>{
+    const paid = c.totalPaid||0;
+    const total = c.totalPrice||0;
+    const pct = total>0 ? Math.min(100, Math.round(paid/total*100)) : 0;
+    const done = total>0 && paid>=total;
+    const av = photoUrl(c);
+    return `<div class="row" onclick="openClient('${c.id}')">
+      <div class="who">${av?`<img class="avatar" src="${av}">`:`<div class="avatar" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink-dim)">—</div>`}
+        <div class="txt"><b>${esc(c.name)}</b><span>${esc(c.phone||'')} · Plaque ${esc(c.tricycleLabel||'—')}</span></div></div>
+      <div class="progress-wrap">
+        <div class="bar"><i style="width:${pct}%"></i></div>
+        <div class="nums"><span>${FMT(paid)} FCFA</span><span>${pct}%</span></div>
+      </div>
+      <div class="contact-actions" onclick="event.stopPropagation()">
+        ${c.phone?`<a class="icon-btn" href="${telHref(c.phone)}" title="Appeler">📞</a><a class="icon-btn wa" href="${waHref(c.phone,c.name,c.sex)}" target="_blank" title="WhatsApp">💬</a>`:''}
+      </div>
+      <div class="badge ${done?'done':''}">${done?'Racheté':FMT(Math.max(total-paid,0))+' restant'}</div>
+    </div>`;
+  }).join('');
+  if(!clients.length) rows = `<div class="empty">Aucun client encore. Touchez « Enregistrer un nouveau client » ci-dessous.</div>`;
+  el.innerHTML = `
+    <div class="toolbar">
+      <h2>${clients.length} client${clients.length>1?'s':''} enregistré${clients.length>1?'s':''}</h2>
+    </div>
+    <div class="ledger">${rows}</div>`;
+}
+
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+async function saveClient(){
+  const name=document.getElementById('f_name').value.trim();
+  const phone=document.getElementById('f_phone').value.trim();
+  const sex=document.getElementById('f_sex').value;
+  const tri=document.getElementById('f_tri').value.trim();
+  const total=Number(document.getElementById('f_total').value)||0;
+  const daily=Number(document.getElementById('f_daily').value)||0;
+  const start=document.getElementById('f_start').value || todayStr();
+  if(!name || !total){ alert("Merci d'indiquer au moins le nom et le prix total."); return; }
+  const doc = {name, phone, sex, tricycleLabel:tri, totalPrice:total, dailyAmount:daily, startDate:start, totalPaid:0, createdAt:Date.now()};
+  if(pendingPhotoId) doc.photoId = pendingPhotoId;
+  try{
+    await db.collection('clients').add(doc);
+  }catch(err){ alert("Échec de l'enregistrement du client : "+(err&&err.message?err.message:err)); return; }
+  closeModal('clientModalBg');
+  ['f_name','f_phone','f_tri','f_total','f_daily','f_start'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f_sex').value='H';
+  document.getElementById('photoPick').innerHTML='Ajouter<br>une photo';
+  pendingPhotoId=null;
+  await loadClients();
+  renderDashboard();
+}
+
+// ---------- client detail ----------
+async function openClient(id){
+  currentClientId=id;
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('bottomBar').style.display='none';
+  document.getElementById('hero').classList.remove('show');
+  renderTopBar(c);
+  const el = document.getElementById('view');
+  el.innerHTML = `<a class="back" onclick="renderDashboard()">← Retour au registre</a><div id="detailBody">Chargement…</div>`;
+  const list = await loadPayments(id);
+  renderClientDetail(c, list);
+}
+
+function renderClientDetail(c, list, keepDate){
+  const paid = totalPaid(list);
+  c.totalPaid = paid;
+  const remaining = Math.max((c.totalPrice||0)-paid,0);
+  const pct = c.totalPrice? Math.min(100,Math.round(paid/c.totalPrice*100)):0;
+  const body = document.getElementById('detailBody');
+  const hist = list.slice(0,30).map(p=>`
+    <div class="hist-row"><span class="d">${p.date}</span><span class="amt">${FMT(p.amount)} FCFA</span></div>
+  `).join('') || `<div class="empty" style="padding:20px 4px">Aucun paiement enregistré.</div>`;
+
+  body.innerHTML = `
+    <div class="detail-head">
+      <div style="display:flex;gap:14px;align-items:center">
+        ${photoUrl(c)?`<img class="avatar big" src="${photoUrl(c)}">`:''}
+        <div><h2>${esc(c.name)}</h2><div class="sub">${esc(c.phone||'')} · Plaque ${esc(c.tricycleLabel||'—')} · remis le ${c.startDate||'—'}</div></div>
+      </div>
+      <div class="badge ${remaining<=0?'done':''}">${remaining<=0?'Racheté':FMT(remaining)+' FCFA restant'}</div>
+    </div>
+    ${c.phone?`<div class="contact-row">
+      <a class="btn ghost" href="${telHref(c.phone)}">📞 Appeler</a>
+      <a class="btn ghost" href="${waHref(c.phone,c.name,c.sex)}" target="_blank">💬 WhatsApp</a>
+    </div>`:''}
+    <div class="bar" style="margin-top:14px"><i style="width:${pct}%"></i></div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">Prix total</div><div class="v">${FMT(c.totalPrice)}</div></div>
+      <div class="stat"><div class="k">Déjà payé</div><div class="v">${FMT(paid)}</div></div>
+      <div class="stat"><div class="k">Restant</div><div class="v">${FMT(remaining)}</div></div>
+    </div>
+
+    <div class="pay-form">
+      <div class="field"><label>Date</label><input type="date" id="pay_date" value="${keepDate||todayStr()}" onchange="checkDay()"></div>
+      <div class="field"><label>Montant (FCFA)</label><input type="number" id="pay_amt" value="${c.dailyAmount||''}"></div>
+      <button class="btn ghost" onclick="checkDay()">Vérifier ce jour</button>
+      <button class="btn" onclick="addPayment()">Ajouter ce paiement</button>
+    </div>
+    <div class="status-line" id="payStatus"></div>
+    <div id="dayList"></div>
+
+    <h2 style="font-size:15px;color:var(--ink-dim);font-weight:500;margin:22px 0 4px">Historique des paiements</h2>
+    <div class="ledger">${hist}</div>
+  `;
+}
+
+async function paymentsForDay(date){
+  try{
+    const res = await db.collection('payments').where('clientId','==',currentClientId).where('date','==',date).get();
+    return (res?.docs||[]).map(d=>({id:d.id, ...d.data()}));
+  }catch(e){ return []; }
+}
+async function checkDay(){
+  const date = document.getElementById('pay_date').value;
+  const statusEl = document.getElementById('payStatus');
+  const listEl = document.getElementById('dayList');
+  if(!date){ statusEl.className='status-line bad'; statusEl.textContent="Choisissez une date."; return; }
+  const dayPays = await paymentsForDay(date);
+  if(!dayPays.length){
+    statusEl.className='status-line bad';
+    statusEl.textContent = `Rien n'a encore été réglé le ${date}.`;
+    listEl.innerHTML='';
+    return;
+  }
+  const sum = totalPaid(dayPays);
+  statusEl.className='status-line ok';
+  statusEl.textContent = `${dayPays.length} paiement${dayPays.length>1?'s':''} déjà enregistré${dayPays.length>1?'s':''} le ${date}.`;
+  listEl.innerHTML = `<div class="day-list">
+    <div class="dl-title">Paiements du ${date}</div>
+    ${dayPays.map(p=>`<div class="dl-row"><span>${new Date(p.paidAt||Date.now()).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span><span>${FMT(p.amount)} FCFA</span></div>`).join('')}
+    <div class="dl-total"><span>Total du jour</span><span>${FMT(sum)} FCFA</span></div>
+  </div>`;
+}
+async function addPayment(){
+  const date = document.getElementById('pay_date').value;
+  const amt = Number(document.getElementById('pay_amt').value)||0;
+  const statusEl = document.getElementById('payStatus');
+  if(!date){ statusEl.className='status-line bad'; statusEl.textContent="Choisissez une date."; return; }
+  if(amt<=0){ statusEl.className='status-line bad'; statusEl.textContent="Indiquez un montant valide."; return; }
+  await db.collection('payments').add({clientId:currentClientId, date, amount:amt, paidAt:Date.now()});
+  const c = clients.find(x=>x.id===currentClientId);
+  c.totalPaid = (c.totalPaid||0)+amt;
+  await db.doc('clients/'+currentClientId).update({totalPaid:c.totalPaid});
+  const list = await loadPayments(currentClientId);
+  renderClientDetail(c, list, date);
+  await checkDay();
+}
+
+function esc(s){ return (s||'').toString().replace(/[<>&]/g, m=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[m])); }
+
+// ---------- boot ----------
+(async function boot(){
+  try{ db = await claude.use('db'); dbReady = !!db; }catch(e){ dbReady=false; }
+  try{ assets = await claude.use('assets'); }catch(e){ assets=null; }
+  if(dbReady){
+    enterApp();
+  } else {
+    document.getElementById('app').style.display='block';
+    document.getElementById('view').innerHTML = '<div class="empty">Stockage indisponible dans cette vue. Rouvrez la page publiée.</div>';
+  }
+})();
+</script>
+</body>
+</html>
